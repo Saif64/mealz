@@ -19,4 +19,11 @@ public class SignUpRequest {
 
     @NotNull
     private LocationName locationName;
+
+
+    @NotBlank
+    private String phoneNumber;
+
+    @NotBlank
+    private String employeeName;
 }

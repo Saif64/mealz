@@ -61,18 +61,9 @@ public class AuthController {
         if (tokenProvider.validateToken(requestRefreshToken)) {
             String username = tokenProvider.getUsernameFromJWT(requestRefreshToken);
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found with username: " + username)); // Consider a more specific exception
+                    .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
 
-            // Generate a new access token
             String newAccessToken = tokenProvider.generateAccessToken(username, user.getRole());
-
-            // Optionally, you could also issue a new refresh token here if you want them to rotate
-            // String newRefreshToken = tokenProvider.generateRefreshToken(username);
-            // return ResponseEntity.ok(new JwtAuthenticationResponse(newAccessToken, newRefreshToken));
-
-            // For now, just returning the new access token and the original refresh token (or a new one if implemented)
-            // We'll return the new access token and the *same* refresh token for simplicity here.
-            // If you want to rotate refresh tokens, you'd generate a new one and return it.
             return ResponseEntity.ok(new JwtAuthenticationResponse(newAccessToken, requestRefreshToken));
         } else {
             return new ResponseEntity<>(new ApiResponse(false, "Invalid refresh token!"), HttpStatus.UNAUTHORIZED);
@@ -87,19 +78,18 @@ public class AuthController {
                     HttpStatus.BAD_REQUEST);
         }
 
-        // Create new user's account
         User user = new User();
         user.setUsername(signUpRequest.getUsername());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         user.setLocationName(signUpRequest.getLocationName());
+        user.setPhoneNumber(signUpRequest.getPhoneNumber());
+        user.setEmployeeName(signUpRequest.getEmployeeName());
 
-        // Assign role based on locationName
         if (signUpRequest.getLocationName() == LocationName.SKS) {
             user.setRole(Role.ROLE_SKS);
         } else if (signUpRequest.getLocationName() == LocationName.SHADHINOTA) {
             user.setRole(Role.ROLE_SHADHINOTA);
         } else {
-            // Handle unknown location if necessary, or default role
             return new ResponseEntity<>(new ApiResponse(false, "Invalid location specified!"),
                     HttpStatus.BAD_REQUEST);
         }
