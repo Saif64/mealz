@@ -1,9 +1,11 @@
 package com.pixel.mealz.mealz.features.auth.model;
 
+import com.pixel.mealz.mealz.features.meal.model.MealChoice;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.UUID;
 
@@ -37,4 +39,19 @@ public class User {
 
     @Column(nullable = false)
     private String employeeName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @ColumnDefault("'MEAL_OFF'")
+    private MealChoice defaultSundayTuesdayWednesday;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @ColumnDefault("'MEAL_OFF'")
+    private MealChoice defaultMonday;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @ColumnDefault("'MEAL_OFF'")
+    private MealChoice defaultThursday;
 }

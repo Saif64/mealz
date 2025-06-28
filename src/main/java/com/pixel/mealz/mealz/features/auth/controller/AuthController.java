@@ -6,6 +6,7 @@ import com.pixel.mealz.mealz.features.auth.model.User;
 import com.pixel.mealz.mealz.features.auth.payload.*;
 import com.pixel.mealz.mealz.features.auth.repository.UserRepository;
 import com.pixel.mealz.mealz.features.auth.security.JwtTokenProvider;
+import com.pixel.mealz.mealz.features.meal.model.MealChoice;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -84,6 +85,10 @@ public class AuthController {
         user.setLocationName(signUpRequest.getLocationName());
         user.setPhoneNumber(signUpRequest.getPhoneNumber());
         user.setEmployeeName(signUpRequest.getEmployeeName());
+        user.setDefaultSundayTuesdayWednesday(MealChoice.MEAL_OFF);
+        user.setDefaultMonday(MealChoice.MEAL_OFF);
+        user.setDefaultThursday(MealChoice.MEAL_OFF);
+
 
         if (signUpRequest.getLocationName() == LocationName.SKS) {
             user.setRole(Role.ROLE_SKS);
