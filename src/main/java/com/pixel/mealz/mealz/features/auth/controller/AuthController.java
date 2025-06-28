@@ -6,11 +6,13 @@ import com.pixel.mealz.mealz.features.auth.model.User;
 import com.pixel.mealz.mealz.features.auth.payload.*;
 import com.pixel.mealz.mealz.features.auth.repository.UserRepository;
 import com.pixel.mealz.mealz.features.auth.security.JwtTokenProvider;
+import com.pixel.mealz.mealz.features.meal.model.MealChoice;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,20 +40,25 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            String accessToken = tokenProvider.generateAccessToken(authentication);
+            String refreshToken = tokenProvider.generateRefreshToken(authentication);
 
-        String accessToken = tokenProvider.generateAccessToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(authentication);
-
-        return ResponseEntity.ok(new JwtAuthenticationResponse(accessToken, refreshToken));
+            return ResponseEntity.ok(new JwtAuthenticationResponse(accessToken, refreshToken));
+        } catch (BadCredentialsException ex) {
+            // This exception is thrown for bad credentials (e.g., username not found, wrong password).
+            // We return a 401 Unauthorized with a clear message.
+            return new ResponseEntity<>(new ApiResponse(false, "Invalid username or password!"), HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @PostMapping("/refresh")
@@ -84,6 +91,10 @@ public class AuthController {
         user.setLocationName(signUpRequest.getLocationName());
         user.setPhoneNumber(signUpRequest.getPhoneNumber());
         user.setEmployeeName(signUpRequest.getEmployeeName());
+        user.setDefaultSundayTuesdayWednesday(MealChoice.MEAL_OFF);
+        user.setDefaultMonday(MealChoice.MEAL_OFF);
+        user.setDefaultThursday(MealChoice.MEAL_OFF);
+
 
         if (signUpRequest.getLocationName() == LocationName.SKS) {
             user.setRole(Role.ROLE_SKS);
